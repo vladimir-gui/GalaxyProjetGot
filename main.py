@@ -12,9 +12,12 @@ class MainWidget(Widget):
     VERTICAL_LINES_SPACING = 0.25  # pourcentage selon largeur ecran
     vertical_lines = []
 
-    HORIZONTAL_NUMBER_LINES = 15
+    HORIZONTAL_NUMBER_LINES = 10
     HORIZONTAL_LINES_SPACING = 0.10  # pourcentage selon largeur ecran
     horizontal_lines = []
+
+    SPEED_OFFSET_Y = 4
+    current_offset_y = 0
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -80,15 +83,15 @@ class MainWidget(Widget):
         xmax = central_line_x - offset_line * spacing_line_x
         spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
         for horizontal_line in range(0, self.HORIZONTAL_NUMBER_LINES):
-            line_y = horizontal_line * spacing_y
+            line_y = horizontal_line * spacing_y - self.current_offset_y  # current_offset_y decale ligne
             x1, y1 = self.transform(xmin, line_y)
             x2, y2 = self.transform(xmax, line_y)
             self.horizontal_lines[horizontal_line].points = [x1, y1, x2, y2]
 
     def transform(self, x, y):
         """choix affichage 2D ou perspective"""
-        return self.transform_2D(x, y)
-        # return self.transform_perspective(x, y)
+        # return self.transform_2D(x, y)
+        return self.transform_perspective(x, y)
 
     def transform_2D(self, x, y):
         """choix affichage 2D"""
@@ -110,7 +113,16 @@ class MainWidget(Widget):
         return int(transfor_x), int(transfor_y)
 
     def update(self, dt):
-        print("up")
+        # print("up")
+        self.update_vertical_lines()
+        self.update_horizontal_lines()
+
+        self.current_offset_y += self.SPEED_OFFSET_Y  # fais defiler lignes horizontales
+
+        spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
+        """ simule lignes infinis"""
+        if self.current_offset_y >= spacing_y:
+            self.current_offset_y -= spacing_y
 
 
 class GalaxyApp(App):

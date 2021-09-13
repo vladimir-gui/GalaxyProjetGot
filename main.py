@@ -26,8 +26,9 @@ class MainWidget(Widget):
     HORIZONTAL_LINES_SPACING = 0.15  # pourcentage selon largeur ecran
     horizontal_lines = []
 
-    SPEED_OFFSET_Y = 4
+    SPEED_OFFSET_Y = 1
     current_offset_y = 0
+    current_y_loop = 0
 
     MOVE_SPEED_X = 12
     current_speed_x = 0
@@ -35,15 +36,14 @@ class MainWidget(Widget):
 
     """ definition tuile tile """
     tile = None  # forme QUAD
-    tile_x = 0
-    tile_y = 0
+    tile_x = 1
+    tile_y = 2
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.init_vertical_lines()
         self.init_horizontal_lines()
         self.init_tiles()
-        self.update_tiles()
 
         if self.is_desktop():  # clavier sur desktop uniquement
             self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
@@ -84,10 +84,11 @@ class MainWidget(Widget):
 
     def get_line_y_from_index(self, index):
         spacing_line_y = self.HORIZONTAL_LINES_SPACING * self.height
-        line_y = index * spacing_line_y + self.current_offset_y
+        line_y = index * spacing_line_y - self.current_offset_y
         return line_y
 
-    def get_tile_coordinates(self,tile_x, tile_y):
+    def get_tile_coordinates(self, tile_x, tile_y):
+        tile_y = tile_y - self.current_y_loop
         x = self.get_line_x_from_index(tile_x)
         y = self.get_line_y_from_index(tile_y)
         return x, y
@@ -141,13 +142,15 @@ class MainWidget(Widget):
         time_factor = dt*60  # permet de corriger la vitesse d'affichage pour avoir toujours un ressenti de 60fps !
         self.update_vertical_lines()
         self.update_horizontal_lines()
+        self.update_tiles()
 
-        # self.current_offset_y += self.SPEED_OFFSET_Y * time_factor # fais defiler lignes horizontales
+        self.current_offset_y += self.SPEED_OFFSET_Y * time_factor # fais defiler lignes horizontales
 
         spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
         """ simule lignes infinis"""
         if self.current_offset_y >= spacing_y:
             self.current_offset_y -= spacing_y
+            self.current_y_loop += 1  # deplace la tile lors de l'animation
 
         # self.current_offset_x += self.current_speed_x * time_factor  # fais defiler lignes verticales
 

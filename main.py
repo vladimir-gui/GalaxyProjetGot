@@ -18,12 +18,12 @@ class MainWidget(Widget):
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
-    VERTICAL_NUMBER_LINES = 10
-    VERTICAL_LINES_SPACING = 0.25  # pourcentage selon largeur ecran
+    VERTICAL_NUMBER_LINES = 4
+    VERTICAL_LINES_SPACING = 0.1  # pourcentage selon largeur ecran
     vertical_lines = []
 
-    HORIZONTAL_NUMBER_LINES = 10
-    HORIZONTAL_LINES_SPACING = 0.10  # pourcentage selon largeur ecran
+    HORIZONTAL_NUMBER_LINES = 8
+    HORIZONTAL_LINES_SPACING = 0.15  # pourcentage selon largeur ecran
     horizontal_lines = []
 
     SPEED_OFFSET_Y = 4
@@ -62,17 +62,21 @@ class MainWidget(Widget):
             for line in range(0, self.VERTICAL_NUMBER_LINES):
                 self.vertical_lines.append(Line())  # ajout des lignes verticales
 
-    def update_vertical_lines(self):
-        # self.line.points = [self.perspective_point_x, 0, self.perspective_point_x, 100]
-        central_line_x = self.width / 2
+    def get_line_x_from_index(self, index):
+        central_line_x = self.perspective_point_x
         spacing_line_x = self.VERTICAL_LINES_SPACING * self.width
-        offset_line = -int(self.VERTICAL_NUMBER_LINES / 2) + 0.5  # decalage inter ligne ( 0.5 pour centrer sur chemin)
-        for vertical_line in range(0, self.VERTICAL_NUMBER_LINES):
-            line_x = int(central_line_x + offset_line * spacing_line_x + self.current_offset_x)
+        offset_line = index - 0.5  # decalage inter ligne ( 0.5 pour centrer sur chemin)
+        line_x = central_line_x + offset_line * spacing_line_x + self.current_offset_x
+        return line_x
+
+    def update_vertical_lines(self):
+        # -1 0 1 2 -- si VERTICAL_NUMBER_LINES = 4
+        start_index = -int(self.VERTICAL_NUMBER_LINES / 2) + 1
+        for vertical_line in range(start_index, start_index+self.VERTICAL_NUMBER_LINES):
+            line_x = self.get_line_x_from_index(vertical_line)
             x1, y1 = self.transform(line_x, 0)
             x2, y2 = self.transform(line_x, self.height)
             self.vertical_lines[vertical_line].points = [x1, y1, x2, y2]
-            offset_line += 1
 
     def init_horizontal_lines(self):
         """ definition lignes horizontales - objet a variables dynamiques donc traité dans le py"""
@@ -101,15 +105,14 @@ class MainWidget(Widget):
         self.update_vertical_lines()
         self.update_horizontal_lines()
 
-        self.current_offset_y += self.SPEED_OFFSET_Y * time_factor # fais defiler lignes horizontales
+        # self.current_offset_y += self.SPEED_OFFSET_Y * time_factor # fais defiler lignes horizontales
 
         spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
         """ simule lignes infinis"""
         if self.current_offset_y >= spacing_y:
             self.current_offset_y -= spacing_y
 
-        # self.current_offset_x += self.MOVE_SPEED_X * time_factor  # fais defiler lignes verticales
-        self.current_offset_x += self.current_speed_x * time_factor  # fais defiler lignes verticales
+        # self.current_offset_x += self.current_speed_x * time_factor  # fais defiler lignes verticales
 
 
 class GalaxyApp(App):

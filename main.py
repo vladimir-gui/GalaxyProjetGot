@@ -8,13 +8,18 @@ class MainWidget(Widget):
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
-    VERTICAL_NUMBER_LINES = 7  # nb ligne impaire pour line milieu centrée
-    VERTICAL_LINES_SPACING = 0.1  # pourcentage selon largeur ecran
+    VERTICAL_NUMBER_LINES = 4
+    VERTICAL_LINES_SPACING = 0.10  # pourcentage selon largeur ecran
     vertical_lines = []
 
-    def __init__(self,**kwargs):
+    HORIZONTAL_NUMBER_LINES = 4
+    HORIZONTAL_LINES_SPACING = 0.20  # pourcentage selon largeur ecran
+    horizontal_lines = []
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.init_vertical_lines()
+        self.init_horizontal_lines()
 
     def on_parent(self, widget, parent):
         # print(f"Init width : {self.width} - height : {self.height}")
@@ -26,6 +31,7 @@ class MainWidget(Widget):
         # self.perspective_point_x = self.width / 2
         # self.perspective_point_y = self.height * 0.75
         self.update_vertical_lines()
+        self.update_horizontal_lines()
 
     def on_perspective_point_x(self, widget, value):
         """ on_perspective_point_x permet d'appeler directement les variables perspective_point_x """
@@ -46,14 +52,55 @@ class MainWidget(Widget):
         # self.line.points = [self.perspective_point_x, 0, self.perspective_point_x, 100]
         central_line_x = self.width / 2
         spacing_line_x = self.VERTICAL_LINES_SPACING * self.width
-        offset_line = -int(self.VERTICAL_NUMBER_LINES / 2)  # decalage inter ligne
+        offset_line = -int(self.VERTICAL_NUMBER_LINES / 2) + 0.5  # decalage inter ligne ( 0.5 pour centrer sur chemin)
         for line in range(0, self.VERTICAL_NUMBER_LINES):
-            x1 = int(central_line_x + offset_line * spacing_line_x)
-            y1 = 0
-            x2 = x1
-            y2 = self.height
+            line_x = int(central_line_x + offset_line * spacing_line_x)
+            x1, y1 = self.transform(line_x, 0)
+            x2, y2 = self.transform(line_x, self.height)
             self.vertical_lines[line].points = [x1, y1, x2, y2]
             offset_line += 1
+
+    def init_horizontal_lines(self):
+        """ definition lignes horizontales - objet a variables dynamiques donc traité dans le py"""
+        with self.canvas:
+            Color(1, 1, 1)
+            for line in range(0, self.HORIZONTAL_NUMBER_LINES):
+                self.horizontal_lines.append(Line())  # ajout des lignes horizontales
+
+    def update_horizontal_lines(self):
+        xmin = 0
+        xmax = self.width
+        spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
+        for horizontal_line in range(0, self.HORIZONTAL_NUMBER_LINES):
+            line_y = horizontal_line * spacing_y
+            x1, y1 = self.transform(xmin, line_y)
+            x2, y2 = self.transform(xmax, line_y)
+            self.horizontal_lines[horizontal_line].points = [x1, y1, x2, y2]
+
+    def transform(self, x, y):
+        """choix affichage 2D ou perspective"""
+        return self.transform_2D(x, y)
+        # return self.transform_perspective(x, y)
+
+    def transform_2D(self, x, y):
+        """choix affichage 2D"""
+        return x, y
+
+    def transform_perspective(self, x, y):
+        """choix affichage 2D ou perspective"""
+        transfor_y = y * self.perspective_point_y / self.height
+        if transfor_y > self.perspective_point_y:
+            transfor_y = self.perspective_point_y
+
+        diff_x = x - self.perspective_point_x
+        diff_y = self.perspective_point_y - transfor_y
+        offset_x = diff_x * diff_y / self.perspective_point_y
+        # factor_y = diff_y / self.perspective_point_y  # identique ligne dessus
+        # offset_x = diff_x * factor_y
+
+        transfor_x = self.perspective_point_x + offset_x
+
+        return transfor_x, transfor_y
 
 
 class GalaxyApp(App):

@@ -8,11 +8,11 @@ class MainWidget(Widget):
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
-    VERTICAL_NUMBER_LINES = 4
+    VERTICAL_NUMBER_LINES = 10
     VERTICAL_LINES_SPACING = 0.10  # pourcentage selon largeur ecran
     vertical_lines = []
 
-    HORIZONTAL_NUMBER_LINES = 4
+    HORIZONTAL_NUMBER_LINES = 15
     HORIZONTAL_LINES_SPACING = 0.20  # pourcentage selon largeur ecran
     horizontal_lines = []
 
@@ -68,8 +68,12 @@ class MainWidget(Widget):
                 self.horizontal_lines.append(Line())  # ajout des lignes horizontales
 
     def update_horizontal_lines(self):
-        xmin = 0
-        xmax = self.width
+        central_line_x = self.width / 2
+        spacing_line_x = self.VERTICAL_LINES_SPACING * self.width
+        offset_line = -int(self.VERTICAL_NUMBER_LINES / 2) + 0.5  # decalage inter ligne ( 0.5 pour centrer sur chemin)
+
+        xmin = central_line_x + offset_line * spacing_line_x
+        xmax = central_line_x - offset_line * spacing_line_x
         spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
         for horizontal_line in range(0, self.HORIZONTAL_NUMBER_LINES):
             line_y = horizontal_line * spacing_y
@@ -79,12 +83,12 @@ class MainWidget(Widget):
 
     def transform(self, x, y):
         """choix affichage 2D ou perspective"""
-        return self.transform_2D(x, y)
-        # return self.transform_perspective(x, y)
+        # return self.transform_2D(x, y)
+        return self.transform_perspective(x, y)
 
     def transform_2D(self, x, y):
         """choix affichage 2D"""
-        return x, y
+        return int(x), int(y)
 
     def transform_perspective(self, x, y):
         """choix affichage 2D ou perspective"""
@@ -100,7 +104,7 @@ class MainWidget(Widget):
 
         transfor_x = self.perspective_point_x + offset_x
 
-        return transfor_x, transfor_y
+        return int(transfor_x), int(transfor_y)
 
 
 class GalaxyApp(App):

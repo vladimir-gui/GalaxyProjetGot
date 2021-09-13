@@ -13,6 +13,8 @@ from kivy.uix.widget import Widget
 
 
 class MainWidget(Widget):
+    from transforms import transform, transform_2D, transform_perspective
+    from user_actions import on_keyboard_up, on_keyboard_down, on_touch_down, on_touch_up
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
@@ -44,34 +46,13 @@ class MainWidget(Widget):
 
     def keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard.unbind(on_key_up=self._on_keyboard_down)
         self._keyboard = None
 
     def is_desktop(self):
         if platform in ('linux', 'win', 'macosx'):
             return True
         return False
-
-    def on_parent(self, widget, parent):
-        # print(f"Init width : {self.width} - height : {self.height}")
-        pass
-
-    def on_size(self, *args):
-        pass
-        # """ Taille fenetre temps reel """
-        # # print(f"Init width : {self.width} - height : {self.height}")
-        # # self.perspective_point_x = self.width / 2
-        # # self.perspective_point_y = self.height * 0.75
-        # self.update_vertical_lines()
-        # self.update_horizontal_lines()
-
-    def on_perspective_point_x(self, widget, value):
-        pass
-        # """ on_perspective_point_x permet d'appeler directement les variables perspective_point_x """
-        # print(f"PX : {value}")
-
-    def on_perspective_point_y(self, widget, value):
-        pass
-        # print(f"PY : {value}")
 
     def init_vertical_lines(self):
         """ definition lignes verticales - objet a variables dynamiques donc traité dans le py"""
@@ -113,49 +94,6 @@ class MainWidget(Widget):
             x1, y1 = self.transform(xmin, line_y)
             x2, y2 = self.transform(xmax, line_y)
             self.horizontal_lines[horizontal_line].points = [x1, y1, x2, y2]
-
-    def transform(self, x, y):
-        """choix affichage 2D ou perspective"""
-        # return self.transform_2D(x, y)
-        return self.transform_perspective(x, y)
-
-    def transform_2D(self, x, y):
-        """choix affichage 2D"""
-        return int(x), int(y)
-
-    def transform_perspective(self, pt_x, pt_y):
-        """choix affichage 2D ou perspective"""
-        linear_y = pt_y * self.perspective_point_y / self.height
-
-        diff_x = pt_x - self.perspective_point_x
-        diff_y = self.perspective_point_y - linear_y
-        factor_y = diff_y / self.perspective_point_y
-        # factor_y = factor_y * factor_y
-        factor_y = pow(factor_y, 2)  # pow = mise au carre
-
-        transfor_x = self.perspective_point_x + diff_x * factor_y
-        transfor_y = self.perspective_point_y - factor_y * self.perspective_point_y
-
-        return int(transfor_x), int(transfor_y)
-
-    def on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        if keycode[1] == "left":
-            self.current_speed_x = self.MOVE_SPEED_X
-        if keycode[1] == "right":
-            self.current_speed_x = -self.MOVE_SPEED_X
-
-    def on_keyboard_up(self, keyboard, keycode):
-        self.current_speed_x = 0
-
-    def on_touch_down(self, touch):
-        """ active le decalage vaisseau tanque touche appuyée """
-        if touch.x < self.width / 2:
-            self.current_speed_x = self.MOVE_SPEED_X
-        else:
-            self.current_speed_x = -self.MOVE_SPEED_X
-
-    def on_touch_up(self, touch):
-        self.current_speed_x = 0
 
     def update(self, dt):
         # print(f"dt: {dt*60} - 1/60 : {1}")

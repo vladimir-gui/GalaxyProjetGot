@@ -85,16 +85,20 @@ class MainWidget(Widget):
             for line in range(0, self.HORIZONTAL_NUMBER_LINES):
                 self.horizontal_lines.append(Line())  # ajout des lignes horizontales
 
-    def update_horizontal_lines(self):
-        central_line_x = self.width / 2
-        spacing_line_x = self.VERTICAL_LINES_SPACING * self.width
-        offset_line = -int(self.VERTICAL_NUMBER_LINES / 2) + 0.5  # decalage inter ligne ( 0.5 pour centrer sur chemin)
+    def get_line_y_from_index(self, index):
+        spacing_line_y = self.HORIZONTAL_LINES_SPACING * self.height
+        line_y = index * spacing_line_y + self.current_offset_y
+        return line_y
 
-        xmin = central_line_x + offset_line * spacing_line_x + self.current_offset_x
-        xmax = central_line_x - offset_line * spacing_line_x + self.current_offset_x
-        spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
+    def update_horizontal_lines(self):
+        start_index = -int(self.VERTICAL_NUMBER_LINES / 2) + 1
+        end_index = start_index + self.VERTICAL_NUMBER_LINES - 1
+
+        xmin = self.get_line_x_from_index(start_index)
+        xmax = self.get_line_x_from_index(end_index)
+
         for horizontal_line in range(0, self.HORIZONTAL_NUMBER_LINES):
-            line_y = horizontal_line * spacing_y - self.current_offset_y  # current_offset_y decale ligne
+            line_y = self.get_line_y_from_index(horizontal_line)
             x1, y1 = self.transform(xmin, line_y)
             x2, y2 = self.transform(xmax, line_y)
             self.horizontal_lines[horizontal_line].points = [x1, y1, x2, y2]

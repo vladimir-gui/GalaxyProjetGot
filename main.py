@@ -7,7 +7,7 @@ Config.set('graphics', 'height', '400')
 
 from kivy.core.window import Window
 from kivy.app import App
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Quad
 from kivy.properties import NumericProperty, Clock
 from kivy.uix.widget import Widget
 
@@ -33,10 +33,17 @@ class MainWidget(Widget):
     current_speed_x = 0
     current_offset_x = 0
 
+    """ definition tuile tile """
+    tile = None  # forme QUAD
+    tile_x = 0
+    tile_y = 0
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.init_vertical_lines()
         self.init_horizontal_lines()
+        self.init_tiles()
+        self.update_tiles()
 
         if self.is_desktop():  # clavier sur desktop uniquement
             self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
@@ -54,6 +61,12 @@ class MainWidget(Widget):
             return True
         return False
 
+    def init_tiles(self):
+        """ creation de la tuile a suivre pour gagner """
+        with self.canvas:
+            Color(1, 1, 1)
+            self.tile = Quad()
+
     def init_vertical_lines(self):
         """ definition lignes verticales - objet a variables dynamiques donc traité dans le py"""
         with self.canvas:
@@ -68,6 +81,30 @@ class MainWidget(Widget):
         offset_line = index - 0.5  # decalage inter ligne ( 0.5 pour centrer sur chemin)
         line_x = central_line_x + offset_line * spacing_line_x + self.current_offset_x
         return line_x
+
+    def get_line_y_from_index(self, index):
+        spacing_line_y = self.HORIZONTAL_LINES_SPACING * self.height
+        line_y = index * spacing_line_y + self.current_offset_y
+        return line_y
+
+    def get_tile_coordinates(self,tile_x, tile_y):
+        x = self.get_line_x_from_index(tile_x)
+        y = self.get_line_y_from_index(tile_y)
+        return x, y
+
+    def update_tiles(self):
+        xmin, ymin = self.get_tile_coordinates(self.tile_x, self.tile_y)
+        xmax, ymax = self.get_tile_coordinates(self.tile_x + 1, self.tile_y + 1)
+
+        # 2     3
+        #
+        # 1     4
+        x1, y1 = self.transform(xmin, ymin)
+        x2, y2 = self.transform(xmin, ymax)
+        x3, y3 = self.transform(xmax, ymax)
+        x4, y4 = self.transform(xmax, ymin)
+
+        self.tile.points = [x1, y1, x2, y2, x3, y3, x4, y4]
 
     def update_vertical_lines(self):
         # -1 0 1 2 -- si VERTICAL_NUMBER_LINES = 4
@@ -85,10 +122,6 @@ class MainWidget(Widget):
             for line in range(0, self.HORIZONTAL_NUMBER_LINES):
                 self.horizontal_lines.append(Line())  # ajout des lignes horizontales
 
-    def get_line_y_from_index(self, index):
-        spacing_line_y = self.HORIZONTAL_LINES_SPACING * self.height
-        line_y = index * spacing_line_y + self.current_offset_y
-        return line_y
 
     def update_horizontal_lines(self):
         start_index = -int(self.VERTICAL_NUMBER_LINES / 2) + 1

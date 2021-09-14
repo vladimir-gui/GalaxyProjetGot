@@ -45,6 +45,7 @@ class MainWidget(Widget):
     SHIP_WIDTH_PERCENT = 0.1
     SHIP_BASE_Y_PERCENT = 0.04
     SHIP_HEIGHT_PERCENT = 0.035
+    ship_coordinate = [(0, 0), (0, 0), (0, 0)]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -92,10 +93,35 @@ class MainWidget(Widget):
         # self.transform
         #    2
         # 1     3
-        x1, y1 = self.transform(center_x - half_width, base_y)
-        x2, y2 = self.transform(center_x, base_y + ship_height)
-        x3, y3 = self.transform(center_x + half_width, base_y)
+        self.ship_coordinate[0] = (center_x - half_width, base_y)
+        self.ship_coordinate[1] = (center_x, base_y + ship_height)
+        self.ship_coordinate[2] = (center_x + half_width, base_y)
+
+        x1, y1 = self.transform(*self.ship_coordinate[0])  # !! * permet d'eclater un tuple dans un tuple voir dessous
+        # x1, y1 = self.transform(self.ship_coordinate[0][0], self.ship_coordinate[0][1])
+        x2, y2 = self.transform(*self.ship_coordinate[1])
+        x3, y3 = self.transform(*self.ship_coordinate[2])
         self.ship.points = [x1, y1, x2, y2, x3, y3]
+
+    def check_ship_collision(self):
+        for i in range(0, len(self.tiles_coordinates)):
+            tile_x, tile_y = self.tiles_coordinates[i]
+            if tile_y > self.current_y_loop + 1:
+                return False  # Game over
+            if self.check_ship_collision_with_tile(tile_x, tile_y):
+                return True  # ok
+        return False
+
+    def check_ship_collision_with_tile(self, tile_x, tile_y):
+        """recuperation des coordonnées du tile"""
+        xmin, ymin = self.get_tile_coordinates(tile_x, tile_y)
+        xmax, ymax = self.get_tile_coordinates(tile_x + 1, tile_y + 1)
+        for i in range(0, 3):
+            px, py = self.ship_coordinate[i]
+            if xmin <= px <= xmax and ymin <= py <= ymax:
+                return True
+                # print("point dans le tile")
+        return False
 
     def init_tiles(self):
         """ creation de la tuile a suivre pour gagner """
@@ -239,6 +265,9 @@ class MainWidget(Widget):
 
         self_x = self.current_speed_x * self.width / 100
         self.current_offset_x += self_x * time_factor  # fais defiler lignes verticales
+
+        if not self.check_ship_collision():
+            print("GAME OVER")
 
 
 class GalaxyApp(App):

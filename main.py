@@ -1,14 +1,13 @@
-import random
-
 from kivy import Config, platform
 # """ taille fenetre par defaut"""
 
 Config.set('graphics', 'width', '900')
 Config.set('graphics', 'height', '400')
 
+import random
 from kivy.core.window import Window
 from kivy.app import App
-from kivy.graphics import Color, Line, Quad
+from kivy.graphics import Color, Line, Quad, Triangle
 from kivy.properties import NumericProperty, Clock
 from kivy.uix.widget import Widget
 
@@ -27,11 +26,11 @@ class MainWidget(Widget):
     HORIZONTAL_LINES_SPACING = 0.15  # pourcentage selon largeur ecran
     horizontal_lines = []
 
-    SPEED_OFFSET_Y = 4
+    SPEED_OFFSET_Y = 1.0
     current_offset_y = 0
     current_y_loop = 0
 
-    MOVE_SPEED_X = 4
+    MOVE_SPEED_X = 3.4
     current_speed_x = 0
     current_offset_x = 0
 
@@ -39,12 +38,21 @@ class MainWidget(Widget):
     NUMBER_TILES = 8
     tiles = []  # forme QUAD
     tiles_coordinates = []  # coordonnees tile_x, tile_y
+    NUMBER_PRE_FILL_TILES = 15  # nb tiles fixes avant de changer en x
+
+    """ parametres vaisseau"""
+    ship = None  # initialise instruction triangle
+    SHIP_WIDTH_PERCENT = 0.1
+    SHIP_BASE_Y_PERCENT = 0.04
+    SHIP_HEIGHT_PERCENT = 0.035
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.init_vertical_lines()
         self.init_horizontal_lines()
         self.init_tiles()
+        self.init_ship()
+        self.pre_fill_tiles_coordinates()
         self.generate_tiles_coordinates()
 
         if self.is_desktop():  # clavier sur desktop uniquement
@@ -62,6 +70,32 @@ class MainWidget(Widget):
         if platform in ('linux', 'win', 'macosx'):
             return True
         return False
+
+    def pre_fill_tiles_coordinates(self):
+        """ initialise X tiles pour avant que les tiles changent en x"""
+        for i in range(0, self.NUMBER_PRE_FILL_TILES):
+            self.tiles_coordinates.append((0, i))
+
+    def init_ship(self):
+        """creation du vaisseau"""
+        with self.canvas:
+            Color(0, 0, 0)
+            self.ship = Triangle()
+
+    def update_ship(self):
+        """repositionne vaisseau si ecran redimensionne """
+        center_x = self.width / 2
+        base_y = self.SHIP_BASE_Y_PERCENT * self.height
+        half_width = self.SHIP_WIDTH_PERCENT * self.width / 2
+        ship_height = self.SHIP_HEIGHT_PERCENT * self.height
+
+        # self.transform
+        #    2
+        # 1     3
+        x1, y1 = self.transform(center_x - half_width, base_y)
+        x2, y2 = self.transform(center_x, base_y + ship_height)
+        x3, y3 = self.transform(center_x + half_width, base_y)
+        self.ship.points = [x1, y1, x2, y2, x3, y3]
 
     def init_tiles(self):
         """ creation de la tuile a suivre pour gagner """
@@ -92,7 +126,7 @@ class MainWidget(Widget):
             # 2 -> a gauche
 
             start_index = -int(self.VERTICAL_NUMBER_LINES / 2) + 1
-            end_index = start_index + self.VERTICAL_NUMBER_LINES - 1
+            end_index = start_index + (self.VERTICAL_NUMBER_LINES - 1) -1
 
             if last_x <= start_index:
                 random_x = 1
@@ -191,8 +225,10 @@ class MainWidget(Widget):
         self.update_vertical_lines()
         self.update_horizontal_lines()
         self.update_tiles()
+        self.update_ship()
 
-        self.current_offset_y += self.SPEED_OFFSET_Y * time_factor # fais defiler lignes horizontales
+        speed_y = self.SPEED_OFFSET_Y * self.height / 100
+        self.current_offset_y += speed_y * time_factor # fais defiler lignes horizont fonction taille ecran
 
         spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
         """ simule lignes infinis"""
@@ -201,7 +237,8 @@ class MainWidget(Widget):
             self.current_y_loop += 1  # deplace la tile lors de l'animation
             self.generate_tiles_coordinates()  # maintient et actualise (genere) les coordonnees y des tiles
 
-        self.current_offset_x += self.current_speed_x * time_factor  # fais defiler lignes verticales
+        self_x = self.current_speed_x * self.width / 100
+        self.current_offset_x += self_x * time_factor  # fais defiler lignes verticales
 
 
 class GalaxyApp(App):

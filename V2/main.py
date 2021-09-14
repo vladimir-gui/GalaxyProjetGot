@@ -1,7 +1,5 @@
 from kivy import Config, platform
 # """ taille fenetre par defaut"""
-from kivy.lang import Builder
-from kivy.uix.relativelayout import RelativeLayout
 
 Config.set('graphics', 'width', '900')
 Config.set('graphics', 'height', '400')
@@ -13,45 +11,41 @@ from kivy.graphics import Color, Line, Quad, Triangle
 from kivy.properties import NumericProperty, Clock
 from kivy.uix.widget import Widget
 
-Builder.load_file("menu.kv")
 
-class MainWidget(RelativeLayout):
+class MainWidget(Widget):
     from transforms import transform, transform_2D, transform_perspective
     from user_actions import on_keyboard_up, on_keyboard_down, on_touch_down, on_touch_up
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
     VERTICAL_NUMBER_LINES = 8
-    VERTICAL_LINES_SPACING = 0.4  # pourcentage selon largeur ecran
+    VERTICAL_LINES_SPACING = 0.2  # pourcentage selon largeur ecran
     vertical_lines = []
 
     HORIZONTAL_NUMBER_LINES = 8
     HORIZONTAL_LINES_SPACING = 0.15  # pourcentage selon largeur ecran
     horizontal_lines = []
 
-    SPEED_OFFSET_Y = 0.8
+    SPEED_OFFSET_Y = 1.0
     current_offset_y = 0
     current_y_loop = 0
 
-    MOVE_SPEED_X = 3.5
+    MOVE_SPEED_X = 3.4
     current_speed_x = 0
     current_offset_x = 0
 
     """ definition tuile tile """
-    NUMBER_TILES = 16
+    NUMBER_TILES = 8
     tiles = []  # forme QUAD
     tiles_coordinates = []  # coordonnees tile_x, tile_y
-    NUMBER_PRE_FILL_TILES = 10  # nb tiles fixes avant de changer en x
+    NUMBER_PRE_FILL_TILES = 15  # nb tiles fixes avant de changer en x
 
     """ parametres vaisseau"""
     ship = None  # initialise instruction triangle
     SHIP_WIDTH_PERCENT = 0.1
-    SHIP_BASE_Y_PERCENT = 0.035
-    SHIP_HEIGHT_PERCENT = 0.04
+    SHIP_BASE_Y_PERCENT = 0.04
+    SHIP_HEIGHT_PERCENT = 0.035
     ship_coordinate = [(0, 0), (0, 0), (0, 0)]
-
-    """gestion game over"""
-    state_game_over = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -77,6 +71,11 @@ class MainWidget(RelativeLayout):
         if platform in ('linux', 'win', 'macosx'):
             return True
         return False
+
+    def pre_fill_tiles_coordinates(self):
+        """ initialise X tiles pour avant que les tiles changent en x"""
+        for i in range(0, self.NUMBER_PRE_FILL_TILES):
+            self.tiles_coordinates.append((0, i))
 
     def init_ship(self):
         """creation du vaisseau"""
@@ -131,11 +130,6 @@ class MainWidget(RelativeLayout):
             for tile in range(0, self.NUMBER_TILES):
                 self.tiles.append(Quad())
 
-    def pre_fill_tiles_coordinates(self):
-        """ initialise X tiles pour avant que les tiles changent en x"""
-        for i in range(0, self.NUMBER_PRE_FILL_TILES):
-            self.tiles_coordinates.append((0, i))
-
     def generate_tiles_coordinates(self):
         last_x = 0
         last_y = 0
@@ -158,7 +152,7 @@ class MainWidget(RelativeLayout):
             # 2 -> a gauche
 
             start_index = -int(self.VERTICAL_NUMBER_LINES / 2) + 1
-            end_index = start_index + self.VERTICAL_NUMBER_LINES - 1
+            end_index = start_index + (self.VERTICAL_NUMBER_LINES - 1) -1
 
             if last_x <= start_index:
                 random_x = 1
@@ -259,22 +253,20 @@ class MainWidget(RelativeLayout):
         self.update_tiles()
         self.update_ship()
 
-        if not self.state_game_over:
-            speed_y = self.SPEED_OFFSET_Y * self.height / 100
-            self.current_offset_y += speed_y * time_factor  # fais defiler lignes horizont fonction taille ecran
+        speed_y = self.SPEED_OFFSET_Y * self.height / 100
+        self.current_offset_y += speed_y * time_factor # fais defiler lignes horizont fonction taille ecran
 
-            spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
-            """ simule lignes infinis"""
-            if self.current_offset_y >= spacing_y:
-                self.current_offset_y -= spacing_y
-                self.current_y_loop += 1  # deplace la tile lors de l'animation
-                self.generate_tiles_coordinates()  # maintient et actualise (genere) les coordonnees y des tiles
+        spacing_y = self.HORIZONTAL_LINES_SPACING * self.height
+        """ simule lignes infinis"""
+        if self.current_offset_y >= spacing_y:
+            self.current_offset_y -= spacing_y
+            self.current_y_loop += 1  # deplace la tile lors de l'animation
+            self.generate_tiles_coordinates()  # maintient et actualise (genere) les coordonnees y des tiles
 
-            self_x = self.current_speed_x * self.width / 100
-            self.current_offset_x += self_x * time_factor  # fais defiler lignes verticales
+        self_x = self.current_speed_x * self.width / 100
+        self.current_offset_x += self_x * time_factor  # fais defiler lignes verticales
 
-        if not self.check_ship_collision() and not self.state_game_over:
-            self.state_game_over = True
+        if not self.check_ship_collision():
             print("GAME OVER")
 
 

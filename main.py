@@ -1,3 +1,5 @@
+import random
+
 from kivy import Config, platform
 # """ taille fenetre par defaut"""
 
@@ -17,24 +19,24 @@ class MainWidget(Widget):
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
-    VERTICAL_NUMBER_LINES = 4
-    VERTICAL_LINES_SPACING = 0.1  # pourcentage selon largeur ecran
+    VERTICAL_NUMBER_LINES = 8
+    VERTICAL_LINES_SPACING = 0.2  # pourcentage selon largeur ecran
     vertical_lines = []
 
     HORIZONTAL_NUMBER_LINES = 8
     HORIZONTAL_LINES_SPACING = 0.15  # pourcentage selon largeur ecran
     horizontal_lines = []
 
-    SPEED_OFFSET_Y = 1
+    SPEED_OFFSET_Y = 4
     current_offset_y = 0
     current_y_loop = 0
 
-    MOVE_SPEED_X = 1
+    MOVE_SPEED_X = 4
     current_speed_x = 0
     current_offset_x = 0
 
     """ definition tuile tile """
-    NUMBER_TILES = 4
+    NUMBER_TILES = 8
     tiles = []  # forme QUAD
     tiles_coordinates = []  # coordonnees tile_x, tile_y
 
@@ -69,8 +71,46 @@ class MainWidget(Widget):
                 self.tiles.append(Quad())
 
     def generate_tiles_coordinates(self):
-        for coordinates in range(0, self.NUMBER_TILES):
-            self.tiles_coordinates.append((0, coordinates))
+        last_x = 0
+        last_y = 0
+
+        # suppr données sorties de l'écran
+        # tile_y < self.current_y_loop
+        for i in range(len(self.tiles_coordinates)-1, -1, -1):
+            if self.tiles_coordinates[i][1] < self.current_y_loop:  # verif si y de la tile < numero loop
+                del self.tiles_coordinates[i]
+
+        if len(self.tiles_coordinates) > 0:
+            last_coordinate = self.tiles_coordinates[-1]  # recupere la derniere valeur tableau
+            last_x = last_coordinate[0]
+            last_y = last_coordinate[1] + 1  # incrementation valeur y suivante
+
+        for coordinates in range(len(self.tiles_coordinates), self.NUMBER_TILES):
+            random_x = random.randint(0, 2)  # generation de patern (forme) aleatoire
+            # 0 -> en avant
+            # 1 -> a droite
+            # 2 -> a gauche
+
+            start_index = -int(self.VERTICAL_NUMBER_LINES / 2) + 1
+            end_index = start_index + self.VERTICAL_NUMBER_LINES - 1
+
+            if last_x <= start_index:
+                random_x = 1
+            if last_x >= end_index:
+                random_x = 2
+
+            self.tiles_coordinates.append((last_x, last_y))
+            if random_x == 1:
+                last_x += 1
+                self.tiles_coordinates.append((last_x, last_y))
+                last_y += 1
+                self.tiles_coordinates.append((last_x, last_y))
+            elif random_x == 2:
+                last_x -= 1
+                self.tiles_coordinates.append((last_x, last_y))
+                last_y += 1
+                self.tiles_coordinates.append((last_x, last_y))
+            last_y += 1
 
     def init_vertical_lines(self):
         """ definition lignes verticales - objet a variables dynamiques donc traité dans le py"""
@@ -159,8 +199,9 @@ class MainWidget(Widget):
         if self.current_offset_y >= spacing_y:
             self.current_offset_y -= spacing_y
             self.current_y_loop += 1  # deplace la tile lors de l'animation
+            self.generate_tiles_coordinates()  # maintient et actualise (genere) les coordonnees y des tiles
 
-        # self.current_offset_x += self.current_speed_x * time_factor  # fais defiler lignes verticales
+        self.current_offset_x += self.current_speed_x * time_factor  # fais defiler lignes verticales
 
 
 class GalaxyApp(App):

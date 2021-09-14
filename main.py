@@ -1,5 +1,4 @@
 from kivy import Config, platform
-
 # """ taille fenetre par defaut"""
 
 Config.set('graphics', 'width', '900')
@@ -30,20 +29,21 @@ class MainWidget(Widget):
     current_offset_y = 0
     current_y_loop = 0
 
-    MOVE_SPEED_X = 12
+    MOVE_SPEED_X = 1
     current_speed_x = 0
     current_offset_x = 0
 
     """ definition tuile tile """
-    tile = None  # forme QUAD
-    tile_x = 1
-    tile_y = 2
+    NUMBER_TILES = 4
+    tiles = []  # forme QUAD
+    tiles_coordinates = []  # coordonnees tile_x, tile_y
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.init_vertical_lines()
         self.init_horizontal_lines()
         self.init_tiles()
+        self.generate_tiles_coordinates()
 
         if self.is_desktop():  # clavier sur desktop uniquement
             self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
@@ -65,7 +65,12 @@ class MainWidget(Widget):
         """ creation de la tuile a suivre pour gagner """
         with self.canvas:
             Color(1, 1, 1)
-            self.tile = Quad()
+            for tile in range(0, self.NUMBER_TILES):
+                self.tiles.append(Quad())
+
+    def generate_tiles_coordinates(self):
+        for coordinates in range(0, self.NUMBER_TILES):
+            self.tiles_coordinates.append((0, coordinates))
 
     def init_vertical_lines(self):
         """ definition lignes verticales - objet a variables dynamiques donc traité dans le py"""
@@ -94,18 +99,21 @@ class MainWidget(Widget):
         return x, y
 
     def update_tiles(self):
-        xmin, ymin = self.get_tile_coordinates(self.tile_x, self.tile_y)
-        xmax, ymax = self.get_tile_coordinates(self.tile_x + 1, self.tile_y + 1)
+        for id_tiles in range(0, self.NUMBER_TILES):
+            tile = self.tiles[id_tiles]
+            tile_coordinates = self.tiles_coordinates[id_tiles]
+            xmin, ymin = self.get_tile_coordinates(tile_coordinates[0], tile_coordinates[1])
+            xmax, ymax = self.get_tile_coordinates(tile_coordinates[0] + 1, tile_coordinates[1] + 1)
 
-        # 2     3
-        #
-        # 1     4
-        x1, y1 = self.transform(xmin, ymin)
-        x2, y2 = self.transform(xmin, ymax)
-        x3, y3 = self.transform(xmax, ymax)
-        x4, y4 = self.transform(xmax, ymin)
+            # 2     3
+            #
+            # 1     4
+            x1, y1 = self.transform(xmin, ymin)
+            x2, y2 = self.transform(xmin, ymax)
+            x3, y3 = self.transform(xmax, ymax)
+            x4, y4 = self.transform(xmax, ymin)
 
-        self.tile.points = [x1, y1, x2, y2, x3, y3, x4, y4]
+            tile.points = [x1, y1, x2, y2, x3, y3, x4, y4]
 
     def update_vertical_lines(self):
         # -1 0 1 2 -- si VERTICAL_NUMBER_LINES = 4

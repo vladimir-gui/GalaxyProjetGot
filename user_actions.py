@@ -14,10 +14,14 @@ def on_keyboard_up(self, keyboard, keycode):
 
 def on_touch_down(self, touch):
     """ active le decalage vaisseau tanque touche appuyée """
-    if touch.x < self.width / 2:
-        self.current_speed_x = self.SPEED_X
-    else:
-        self.current_speed_x = -self.SPEED_X
+    # state_game_over = False
+    # state_game_has_started = False
+
+    if not self.state_game_over and self.state_game_has_started:
+        if touch.x < self.width / 2:
+            self.current_speed_x = self.SPEED_X
+        else:
+            self.current_speed_x = -self.SPEED_X
     return super(RelativeLayout, self).on_touch_down(touch)  # !! permet de gerer clic dans MainWidget et dependances
 
 

@@ -21,6 +21,8 @@ def transform_perspective(self, x, y):
     # factor_y = factor_y * factor_y
     factor_y = pow(factor_y, 2)  # pow = mise au carre
 
+    offset_x = diff_x * factor_y
+
     transfor_x = self.perspective_point_x + diff_x * factor_y
     transfor_y = self.perspective_point_y - factor_y * self.perspective_point_y
 

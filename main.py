@@ -246,15 +246,16 @@ class MainWidget(RelativeLayout):
         xmin = self.get_line_x_from_index(start_index)
         xmax = self.get_line_x_from_index(end_index)
 
-        for horizontal_line in range(0, self.H_NB_LINES):
-            line_y = self.get_line_y_from_index(horizontal_line)
+        for i in range(0, self.H_NB_LINES):
+            line_y = self.get_line_y_from_index(i)
             x1, y1 = self.transform(xmin, line_y)
             x2, y2 = self.transform(xmax, line_y)
-            self.horizontal_lines[horizontal_line].points = [x1, y1, x2, y2]
+            self.horizontal_lines[i].points = [x1, y1, x2, y2]
 
     def update(self, dt):
         # print(f"dt: {dt*60} - 1/60 : {1}")
         time_factor = dt*60  # permet de corriger la vitesse d'affichage pour avoir toujours un ressenti de 60fps !
+
         self.update_vertical_lines()
         self.update_horizontal_lines()
         self.update_tiles()
@@ -271,8 +272,8 @@ class MainWidget(RelativeLayout):
                 self.current_y_loop += 1  # deplace la tile lors de l'animation
                 self.generate_tiles_coordinates()  # maintient et actualise (genere) les coordonnees y des tiles
 
-            self_x = self.current_speed_x * self.width / 100
-            self.current_offset_x += self_x * time_factor  # fais defiler lignes verticales
+            speed_x = self.current_speed_x * self.width / 100
+            self.current_offset_x += speed_x * time_factor  # fais defiler lignes verticales
 
         if not self.check_ship_collision() and not self.state_game_over:
             self.state_game_over = True

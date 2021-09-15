@@ -9,12 +9,14 @@ def transform_2D(self, x, y):
     return int(x), int(y)
 
 
-def transform_perspective(self, pt_x, pt_y):
+def transform_perspective(self, x, y):
     """choix affichage 2D ou perspective"""
-    linear_y = pt_y * self.perspective_point_y / self.height
+    lin_y = y * self.perspective_point_y / self.height
+    if lin_y > self.perspective_point_y:
+        lin_y = self.perspective_point_y
 
-    diff_x = pt_x - self.perspective_point_x
-    diff_y = self.perspective_point_y - linear_y
+    diff_x = x - self.perspective_point_x
+    diff_y = self.perspective_point_y - lin_y
     factor_y = diff_y / self.perspective_point_y
     # factor_y = factor_y * factor_y
     factor_y = pow(factor_y, 2)  # pow = mise au carre

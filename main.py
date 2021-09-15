@@ -329,11 +329,12 @@ class MainWidget(RelativeLayout):
             self.menu_widget.opacity = 1
             self.sound_music1.stop()
             self.sound_gameover_impact.play()
-            Clock.schedule_once(self.play_voice_game_over, 3)  # mise en place delai pour voix game over
+            Clock.schedule_once(self.play_voice_game_over, 2.5)  # mise en place delai pour voix game over
             print("GAME OVER")
 
     def play_voice_game_over(self, dt):
-        self.sound_gameover_voice.play()
+        if self.state_game_over:  # ! evite bug son si clic rapide sur restart
+            self.sound_gameover_voice.play()
 
     def on_menu_button_pressed(self):
         print("START")

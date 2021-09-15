@@ -3,6 +3,12 @@
 MainWidget:
 
 <MainWidget>:
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: "images/bg1.jpg"  # background image
+
     menu_widget:menu_widget  # permet assigner objet vers .py
     # lie a variable perspective_point_x du .py
     perspective_point_x: self.width / 2

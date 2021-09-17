@@ -351,8 +351,7 @@ class MainWidget(RelativeLayout):
 
 
 class GalaxyApp(App):
-    def build(self):
-        resource_add_path(self.directory)
+    pass
 
 
 GalaxyApp().run()

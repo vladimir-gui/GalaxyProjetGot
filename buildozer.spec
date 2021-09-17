@@ -52,7 +52,7 @@ requirements = python3==3.7.5,hostpython3==3.7.5,kivy==2.0.0,requests,urllib3,Py
 #icon.filename = %(source.dir)s/data/icon.png
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
-orientation = all
+orientation = landscape
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY

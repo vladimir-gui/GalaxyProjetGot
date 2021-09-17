@@ -12,6 +12,7 @@ from kivy.core.window import Window
 from kivy.app import App
 from kivy.graphics import Color, Line, Quad, Triangle
 from kivy.properties import NumericProperty, Clock, ObjectProperty, StringProperty
+from kivy.resources import resource_add_path
 
 Builder.load_file("menu.kv")
 
@@ -349,9 +350,9 @@ class MainWidget(RelativeLayout):
         self.menu_widget.opacity = 0
 
 
-
 class GalaxyApp(App):
-    pass
+    def build(self):
+        resource_add_path(self.directory)
 
 
 GalaxyApp().run()

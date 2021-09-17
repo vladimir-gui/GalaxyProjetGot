@@ -12,7 +12,6 @@ from kivy.core.window import Window
 from kivy.app import App
 from kivy.graphics import Color, Line, Quad, Triangle
 from kivy.properties import NumericProperty, Clock, ObjectProperty, StringProperty
-from kivy.resources import resource_add_path
 
 Builder.load_file("menu.kv")
 
